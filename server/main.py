@@ -52,7 +52,7 @@ def check_message():
     for i in value:
         if i == 'text':
             cur.execute(f"SELECT id,for_user_id,date,text FROM message "
-                        f"WHERE {user_id} = from_user_id AND status = 'new'")
+                        f"WHERE {user_id} = from_user_id AND status = 'new' AND type = 'text'")
             message = cur.fetchall()
             result = {'id': [], 'for_user_id': [], 'date': [], 'text': []}
             for y in message:
