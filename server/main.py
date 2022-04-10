@@ -35,7 +35,7 @@ def user_info():
     return jsonify(result)
 
 
-app.route('/check_message', methods=['PORT', 'GET'])
+@app.route('/check_message', methods=['PORT', 'GET'])
 def check_message():
     user_id = request.json.get('user_id')
     con = sqlite3.connect('data/datebase/server.db')
@@ -43,25 +43,40 @@ def check_message():
     cur.execute(f"SELECT type FROM message "
                 f"WHERE {user_id} = for_user_id AND status = 'new'")
     value = cur.fetchone()
-    if value == 'text':
-        cur.execute(f"SELECT id,from_user_id,date,text FROM message "
-                    f"WHERE {user_id} = for_user_id AND status = 'new'")
-        message = cur.fetchall()
-        result = {'id': [], 'from_user_id': [], 'date': [], 'text': []}
-        for i in message:
-            result['id'].append(i[0])
-            result['from_user_id'].append(i[1])
-            result['date'].append(i[2])
-            result['text'].append(i[3])
-            cur.execute(f"UPDATE messenger "
-                        f"SET status='old' "
-                        f"WHERE id = {i[0]}")
-            con.commit()
-        cur.close()
-        con.close()
-        return jsonify(result)
-    if value == 'photo':
-        return None
+    for i in value:
+        if value == 'text':
+            cur.execute(f"SELECT id,from_user_id,date,text FROM message "
+                        f"WHERE {user_id} = for_user_id AND status = 'new'")
+            message = cur.fetchall()
+            result = {'id': [], 'from_user_id': [], 'date': [], 'text': []}
+            for i in message:
+                result['id'].append(i[0])
+                result['from_user_id'].append(i[1])
+                result['date'].append(i[2])
+                result['text'].append(i[3])
+                cur.execute(f"UPDATE messenger "
+                            f"SET status='old' "
+                            f"WHERE id = {i[0]}")
+                con.commit()
+            cur.close()
+            con.close()
+        if value == 'photo':
+            continue
+    return jsonify(result)
+
+
+@app.route('/send_message', methods=['GER', 'POST'])
+def send_message():
+    for_user_id = request.json.get('for_user_id')
+    from_user_id = request.json.get('from_user_id')
+    date = request
+    text = request.json.get('text')
+    con = sqlite3.connect('data/datebase/server.db')
+    cur = con.cursor()
+    cur.execute(f"INSERT INTO message(for_user_id,from_user_id,date,type,text,photo,status) "
+                f"VALUES ('{for_user_id}', ''{from_user_id}), '{date}, '{text}', 'None', 'new')'")
+    con.commit()
+    return True
 
 
 if __name__ == '__main__':
