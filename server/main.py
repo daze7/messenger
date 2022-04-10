@@ -9,7 +9,7 @@ app = Flask(__name__)
 def user_info():
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
-    cur.execute(f"SELECT id,user_id,name,surname,date_register,password,e_mail,status FROM users")
+    cur.execute(f"SELECT id,user_id,name,surname,date_register,password,login,status FROM users")
     value = cur.fetchall()
     cur.close()
     con.close()
@@ -20,7 +20,7 @@ def user_info():
         'surname': None,
         'date_register': None,
         'password': None,
-        'e-mail': None,
+        'login': None,
         'status': None
     }
     for i in value:
@@ -30,42 +30,48 @@ def user_info():
         result['surname'] = i[3]
         result['date_register'] = i[4]
         result['password'] = i[5]
-        result['e-mail'] = i[6]
+        result['login'] = i[6]
         result['status'] = i[7]
     return jsonify(result)
 
 
-@app.route('/check_message', methods=['PORT', 'GET'])
+@app.route('/check_message', methods=['POST', 'GET'])
 def check_message():
     user_id = request.json.get('user_id')
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = for_user_id AND status = 'new'")
+                f"WHERE {user_id} = from_user_id")
+    if len(cur.fetchall()) == 0:
+        return jsonify({'error': 'not found this user_id'})
+    cur.execute(f"SELECT type FROM message "
+                f"WHERE {user_id} = from_user_id AND status = 'new'")
     value = cur.fetchone()
+    if len(value) == 0:
+        return jsonify({'result': 'no new messages found'})
     for i in value:
-        if value == 'text':
-            cur.execute(f"SELECT id,from_user_id,date,text FROM message "
-                        f"WHERE {user_id} = for_user_id AND status = 'new'")
+        if i == 'text':
+            cur.execute(f"SELECT id,for_user_id,date,text FROM message "
+                        f"WHERE {user_id} = from_user_id AND status = 'new'")
             message = cur.fetchall()
-            result = {'id': [], 'from_user_id': [], 'date': [], 'text': []}
-            for i in message:
-                result['id'].append(i[0])
-                result['from_user_id'].append(i[1])
-                result['date'].append(i[2])
-                result['text'].append(i[3])
+            result = {'id': [], 'for_user_id': [], 'date': [], 'text': []}
+            for y in message:
+                result['id'].append(y[0])
+                result['for_user_id'].append(y[1])
+                result['date'].append(y[2])
+                result['text'].append(y[3])
                 cur.execute(f"UPDATE messenger "
                             f"SET status='old' "
-                            f"WHERE id = {i[0]}")
+                            f"WHERE id = {y[0]}")
                 con.commit()
-            cur.close()
-            con.close()
         if value == 'photo':
             continue
+    cur.close()
+    con.close()
     return jsonify(result)
 
 
-@app.route('/send_message', methods=['GER', 'POST'])
+@app.route('/send_message', methods=['GET', 'POST'])
 def send_message():
     for_user_id = request.json.get('for_user_id')
     from_user_id = request.json.get('from_user_id')
