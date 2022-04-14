@@ -1,3 +1,4 @@
+import datetime
 import sys
 import datetime as dt
 import sqlite3
@@ -20,12 +21,18 @@ class Autorize_Form(QDialog):
         if login and password:
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
-            com = 'SELECT password FROM user WHERE login = ' + login
+            com = 'SELECT password FROM user WHERE login = "' + login + '"'
             res = cur.execute(com).fetchone()
             con.close()
             if res == password:
                 self.w = Main_Window()
                 self.w.show()
+            else:
+                msg = QMessageBox()
+                msg.setWindowTitle("Ошибка")
+                msg.setText("Неправильный пароль")
+                msg.setIcon(QMessageBox.Warning)
+                msg.exec_()
         else:
             msg = QMessageBox()
             msg.setWindowTitle("Ошибка")
@@ -34,7 +41,50 @@ class Autorize_Form(QDialog):
             msg.exec_()
 
     def sign_up(self):
-        pass
+        self.w = Sign_up_form()
+        self.w.show()
+
+class Sign_up_form(QDialog):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('sign_up_interface.ui', self)
+        self.confirm.clicked.connect(self.enter)
+
+    def enter(self):
+        login = self.up_login.text()
+        name = self.up_name.text()
+        surname = self.up_surname.text()
+        password = self.up_password.text()
+        date = datetime.datetime.today().isoformat(sep='T')
+        if login and name and surname and password:
+            con = sqlite3.connect('data/datebase/application.db')
+            cur = con.cursor()
+            com = 'SELECT name FROM user WHERE login = "' + login + '"'
+            res = cur.execute(com).fetchone()
+            con.close()
+            if res:
+                msg = QMessageBox()
+                msg.setWindowTitle("Ошибка")
+                msg.setText("Этот логин уже занят")
+                msg.setIcon(QMessageBox.Warning)
+                msg.exec_()
+            else:
+                con = sqlite3.connect('data/datebase/application.db')
+                cur = con.cursor()
+                com = 'INSERT INTO user(id_user, login, name, surname, password, date_regist) VALUES(?, ?, ?, ?, ?, ?)'
+                user_id = 111
+                dat = [user_id, login, name, surname, password, date]
+                self.cur.execute(com, dat)
+                self.con.commit()
+                con.close()
+        else:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Некорректный ввод данных")
+            msg.setIcon(QMessageBox.Warning)
+            msg.exec_()
+
+
 
 
 
