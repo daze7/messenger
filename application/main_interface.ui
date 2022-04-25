@@ -49,9 +49,9 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>400</x>
+      <x>240</x>
       <y>0</y>
-      <width>191</width>
+      <width>631</width>
       <height>51</height>
      </rect>
     </property>
@@ -62,9 +62,9 @@ p, li { white-space: pre-wrap; }
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>0</x>
       <y>0</y>
-      <width>191</width>
+      <width>221</width>
       <height>51</height>
      </rect>
     </property>
@@ -115,6 +115,42 @@ p, li { white-space: pre-wrap; }
     <property name="flat">
      <bool>false</bool>
     </property>
+   </widget>
+   <widget class="QPushButton" name="add_user">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>211</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Добавить контакт</string>
+    </property>
+   </widget>
+   <widget class="QScrollArea" name="scrollArea">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>211</width>
+      <height>431</height>
+     </rect>
+    </property>
+    <property name="widgetResizable">
+     <bool>true</bool>
+    </property>
+    <widget class="QWidget" name="scrollAreaWidgetContents">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>209</width>
+       <height>429</height>
+      </rect>
+     </property>
+    </widget>
    </widget>
   </widget>
  </widget>
