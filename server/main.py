@@ -1,8 +1,15 @@
+import datetime
 import os, sqlite3
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
+from werkzeug.utils import redirect
+
+from data import db_session
+from data.forms.user_regist import RegisterForm
+from data.User import User
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'MESSENGER_SEKRET_KEY'
 
 
 @app.route("/user_info", methods=['POST', 'GET'])
@@ -85,6 +92,30 @@ def send_message():
     return True
 
 
+@app.route('/registration_users', methods=['GET', 'POST'])
+def registration_user():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.password_again.data:
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Пароли не совпадают")
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.login == form.email.data).first():
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Такой пользователь уже есть")
+        user = User(name=form.name.data, login=form.email.data, surname=form.surname.data)
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+        return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Успешно")
+    return render_template('register.html', title='Регистрация', form=form)
+
+
 if __name__ == '__main__':
+    db_session.global_init("data/datebase/server.db")
     port = int(os.environ.get("PORT", 5000))
     app.run(host='127.0.0.1', port=5000)
