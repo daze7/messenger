@@ -4,6 +4,7 @@ import datetime as dt
 import sqlite3
 import webbrowser
 
+import requests
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox
@@ -20,6 +21,24 @@ class Autorize_Form(QDialog):
     def sign_in(self):
         login = self.login.text()
         password = self.password.text()
+        con = sqlite3.connect('data/datebase/application.db')
+        cur = con.cursor()
+        com = 'SELECT id FROM users'
+        res = cur.execute(com).fetchall()
+        cur.close()
+        con.close()
+        print(res)
+        if len(res) == 0:
+            try:
+                re = requests.post('http://127.0.0.1:5000/user_info').json()
+                print(re)
+            except requests.exceptions.RequestException:
+                msg = QMessageBox()
+                msg.setWindowTitle("Ошибка")
+                msg.setText("Сервер недоступен")
+                msg.setIcon(QMessageBox.Warning)
+                msg.exec_()
+                return None
         if login and password:
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
@@ -44,75 +63,7 @@ class Autorize_Form(QDialog):
             msg.exec_()
 
     def sign_up(self):
-        self.q = Sign_up_form()
-        self.q.show()
-
-class Sign_up_form(QDialog):
-    def __init__(self):
-        super().__init__()
-        uic.loadUi('sign_up_interface.ui', self)
-        self.confirm.clicked.connect(self.enter)
-        self.up_password.setEchoMode(QLineEdit.Password)
-
-    def enter(self):
-        login = self.up_login.text()
-        name = self.up_name.text()
-        surname = self.up_surname.text()
-        password = self.up_password.text()
-        date = datetime.datetime.today().isoformat(sep='T')
-        if login and name and surname and password:
-            con = sqlite3.connect('data/datebase/application.db')
-            cur = con.cursor()
-            com = 'SELECT name FROM user WHERE login = "' + login + '"'
-            res = cur.execute(com).fetchone()
-            con.close()
-            if res:
-                msg = QMessageBox()
-                msg.setWindowTitle("Ошибка")
-                msg.setText("Этот логин уже занят")
-                msg.setIcon(QMessageBox.Warning)
-                msg.exec_()
-            else:
-                status = True
-                symbols = '''qwertyuiopasdfghjklzxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM0123456789! " # $ % & ' ( ) * + ,
-                 - . / : ; < = > ? @ [ \ ] ^ _` { | } ~ '''
-                for i in password:
-                    if i not in symbols:
-                        status = False
-                        break
-                if not status:
-                    msg = QMessageBox()
-                    msg.setWindowTitle("Ошибка")
-                    msg.setText("Недопустимый пароль")
-                    msg.setIcon(QMessageBox.Warning)
-                    msg.exec_()
-                else:
-                    con = sqlite3.connect('data/datebase/application.db')
-                    cur = con.cursor()
-                    com = 'INSERT INTO user(id_user, login, name, surname, password, date_regist) VALUES(?, ?, ?, ?, ?, ?)'
-                    user_id = '111'
-                    dat = [user_id, login, name, surname, password, date]
-                    cur.execute(com, dat)
-                    con.commit()
-                    con.close()
-                    self.close()
-                    msg = QMessageBox()
-                    msg.setIcon(QMessageBox.Information)
-                    msg.setWindowTitle("Регистрация")
-                    msg.setText("Вы успешно зарегистрировались!")
-                    msg.exec_()
-        else:
-            msg = QMessageBox()
-            msg.setWindowTitle("Ошибка")
-            msg.setText("Некорректный ввод данных")
-            msg.setIcon(QMessageBox.Warning)
-            msg.exec_()
-
-
-
-
-
-
+        webbrowser.open('http://127.0.0.1:5000/registration_users')
 
 
 class Main_Window(QMainWindow):
