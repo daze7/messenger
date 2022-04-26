@@ -16,29 +16,20 @@ app.config['SECRET_KEY'] = 'MESSENGER_SEKRET_KEY'
 def user_info():
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
-    cur.execute(f"SELECT id,user_id,name,surname,date_register,password,login,status FROM users")
+    cur.execute("SELECT id,id_user,name,surname,date_register,hashed_password,login,status FROM users")
     value = cur.fetchall()
     cur.close()
     con.close()
-    result = {
-        "id": None,
-        'user_id': None,
-        'name': None,
-        'surname': None,
-        'date_register': None,
-        'password': None,
-        'login': None,
-        'status': None
-    }
+    result = {}
     for i in value:
-        result['id'] = i[0]
-        result['user_id'] = i[1]
-        result['name'] = i[2]
-        result['surname'] = i[3]
-        result['date_register'] = i[4]
-        result['password'] = i[5]
-        result['login'] = i[6]
-        result['status'] = i[7]
+        result[i[0]] = {}
+        result[i[0]]['user_id'] = i[1]
+        result[i[0]]['name'] = i[2]
+        result[i[0]]['surname'] = i[3]
+        result[i[0]]['date_register'] = i[4]
+        result[i[0]]['password'] = i[5]
+        result[i[0]]['login'] = i[6]
+        result[i[0]]['status'] = i[7]
     return jsonify(result)
 
 
