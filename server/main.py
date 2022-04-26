@@ -107,6 +107,8 @@ def registration_user():
                                    message="Такой пользователь уже есть")
         user = User(name=form.name.data, login=form.email.data, surname=form.surname.data)
         user.set_password(form.password.data)
+        user_id = f'***{form.name.data}{form.surname.data}{datetime.datetime.now()}{form.email.data}***'
+        user.set_user_id(user_id)
         db_sess.add(user)
         db_sess.commit()
         return render_template('register.html', title='Регистрация',

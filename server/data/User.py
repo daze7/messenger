@@ -18,7 +18,10 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     surname = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     date_register = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now())
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
-    status = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    status = sqlalchemy.Column(sqlalchemy.String, default='offline')
+
+    def set_user_id(self, id):
+        self.id_user = id
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
