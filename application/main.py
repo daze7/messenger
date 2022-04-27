@@ -216,8 +216,9 @@ class Main_Window(QMainWindow):
             from_login = f1.readline()
             f1.close()
             from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()
-            data = {'from_user_id': from_user_id}
-            resp = requests.post(server_addres + 'check_message', json=data).json()
+            data = {'user_id': from_user_id}
+            resp = requests.post(server_addres + 'check_message', json=data)
+            resp.json()
             print(resp)
             cur.close()
             con.close()
