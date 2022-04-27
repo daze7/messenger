@@ -44,16 +44,16 @@ def check_message():
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = for_user_id")
+                f"WHERE {user_id} = from_user_id")
     if len(cur.fetchall()) == 0:
         return jsonify({'error': 'not found this user_id'})
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = for_user_id AND status = 'new'")
+                f"WHERE {user_id} = from_user_id AND status = 'new'")
     value = cur.fetchone()
     if len(value) == 0:
         return jsonify({'result': 'no new messages found'})
     cur.execute(f"SELECT id,for_user_id,from_user_id,date,type,text,status FROM message "
-                f"WHERE {user_id} = for_user_id AND status = 'new' AND type = 'text'")
+                f"WHERE {user_id} = from_user_id AND status = 'new' AND type = 'text'")
     messages = cur.fetchall()
     result = {}
     for y in messages:
