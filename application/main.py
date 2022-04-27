@@ -112,9 +112,16 @@ class Contacts(QWidget):
         self.add_user = QPushButton("Добавить пользователя")
         self.add_user.setStyleSheet("background-color: red")
         formLayout.addRow(self.add_user)
-        username = 'unkno'
-        for i in range(val):
-            self.button = QPushButton("Userва")
+        con = sqlite3.connect('data/datebase/application.db')
+        cur = con.cursor()
+        com = 'SELECT name, surname, login FROM chat'
+        res = cur.execute(com).fetchall()
+        cur.close()
+        con.close()
+        print(res)
+        for i in range(len(res)):
+            usern = res[i][0] + ' ' + res[i][1] + '(' + res[i][2] + ')'
+            self.button = QPushButton(usern)
             formLayout.addRow(self.button)
             self.button.clicked.connect(self.open_chat)
         groupBox.setLayout(formLayout)
@@ -148,7 +155,7 @@ class Main_Window(QMainWindow):
         super().__init__()
         uic.loadUi('main_interface.ui', self)
         self.msg_send.clicked.connect(self.send)
-        self.label.setText(username)
+        self.label.setText(username.split('(')[0])
 
 
     def keyPressEvent(self, event):
