@@ -78,13 +78,15 @@ def check_message():
 def send_message():
     for_user_id = request.json.get('for_user_id')
     from_user_id = request.json.get('from_user_id')
-    date = request
+    date = request.json.get('date')
     text = request.json.get('text')
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"INSERT INTO message(for_user_id,from_user_id,date,type,text,photo,status) "
                 f"VALUES ('{for_user_id}', ''{from_user_id}), '{date}, '{text}', 'None', 'new')'")
     con.commit()
+    cur.close()
+    con.close()
     return True
 
 
