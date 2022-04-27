@@ -97,13 +97,13 @@ def registration_user():
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
-        if db_sess.query(User).filter(User.login == form.email.data).first():
+        if db_sess.query(User).filter(User.login == form.login.data).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть")
-        user = User(name=form.name.data, login=form.email.data, surname=form.surname.data)
+        user = User(name=form.name.data, login=form.login.data, surname=form.surname.data)
         user.set_password(form.password.data)
-        user_id = f'***{form.name.data}{form.surname.data}{datetime.datetime.now()}{form.email.data}***'
+        user_id = f'***{form.name.data}{form.surname.data}{datetime.datetime.now()}{form.login.data}***'
         user.set_user_id(user_id)
         db_sess.add(user)
         db_sess.commit()
