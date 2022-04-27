@@ -165,6 +165,7 @@ class Main_Window(QMainWindow):
         uic.loadUi('main_interface.ui', self)
         self.msg_send.clicked.connect(self.send)
         self.label.setText(username.split('(')[0])
+        self.show_history()
 
 
     def keyPressEvent(self, event):
@@ -204,6 +205,40 @@ class Main_Window(QMainWindow):
                 msg.setIcon(QMessageBox.Warning)
                 msg.exec_()
                 return None
+
+    def check_message(self):
+        try:
+            self.check_users()
+
+        except BaseException as e:
+            return e
+
+    def show_history(self):
+        try:
+            self.check_users()
+            f2 = open('data/for_user.txt', 'r')
+            for_login = f2.readline()
+            f2.close()
+            con = sqlite3.connect('data/datebase/application.db')
+            cur = con.cursor()
+            for_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{for_login}'").fetchone()
+            value = cur.execute(f"SELECT id,text,date,for_user_id FROM message "
+                                f"WHERE for_user_id = '{for_user_id}'").fetchall()
+            name = cur.execute(f"SELECT name,surname FROM users WHERE login = '{for_login}'").fetchall()
+            self.msg_field.clear()
+            for i in value:
+                if value[3] != for_user_id:
+                    self.msg_field.append('')
+                    self.msg_field.append('Вы' + '[' + value[2] + ']:')
+                    self.msg_field.append(value[1])
+                else:
+                    self.msg_field.append('')
+                    self.msg_field.append(name[0] + ' ' + name[1] + '[' + value[2] + ']:')
+                    self.msg_field.append(value[1])
+            cur.close()
+            con.close()
+        except BaseException:
+            return None
 
     def check_users(self):
         try:
