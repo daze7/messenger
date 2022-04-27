@@ -166,6 +166,7 @@ class Main_Window(QMainWindow):
         self.msg_send.clicked.connect(self.send)
         self.label.setText(username.split('(')[0])
         self.show_history()
+        self.check_message()
 
 
     def keyPressEvent(self, event):
@@ -209,7 +210,17 @@ class Main_Window(QMainWindow):
     def check_message(self):
         try:
             self.check_users()
-
+            con = sqlite3.connect('data/datebase/application.db')
+            cur = con.cursor()
+            f1 = open('data/from_user.txt', 'r')
+            from_login = f1.readline()
+            f1.close()
+            from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()
+            data = {'from_user_id': from_user_id}
+            resp = requests.post(server_addres + 'check_message', json=data).json()
+            print(resp)
+            cur.close()
+            con.close()
         except BaseException as e:
             return e
 
@@ -231,10 +242,17 @@ class Main_Window(QMainWindow):
                     self.msg_field.append('')
                     self.msg_field.append('Вы' + '[' + value[2] + ']:')
                     self.msg_field.append(value[1])
+                    cur.execute(f"UPDATE messenger "
+                                f"SET status='old' "
+                                f"WHERE id = {i[0]}")
+                    con.commit()
                 else:
                     self.msg_field.append('')
                     self.msg_field.append(name[0] + ' ' + name[1] + '[' + value[2] + ']:')
                     self.msg_field.append(value[1])
+                    cur.execute(f"UPDATE messenger "
+                                f"SET status='old' "
+                                f"WHERE id = {i[0]}")
             cur.close()
             con.close()
         except BaseException:
