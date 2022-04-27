@@ -40,7 +40,7 @@ def check_server():
 
 @app.route('/check_message', methods=['POST', 'GET'])
 def check_message():
-    user_id = request.json.get('user_id')
+    user_id = request.json['user_id']
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
@@ -76,10 +76,10 @@ def check_message():
 
 @app.route('/send_message', methods=['GET', 'POST'])
 def send_message():
-    for_user_id = request.json.get('for_user_id')
-    from_user_id = request.json.get('from_user_id')
-    date = request.json.get('date')
-    text = request.json.get('text')
+    for_user_id = request.json['for_user_id']
+    from_user_id = request.json['from_user_id']
+    date = request.json['date']
+    text = request.json['text']
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"INSERT INTO message(for_user_id,from_user_id,date,type,text,photo,status) "
