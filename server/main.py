@@ -87,7 +87,7 @@ def send_message():
     con.commit()
     cur.close()
     con.close()
-    return True
+    return jsonify({'result': 'ok'})
 
 
 @app.route('/registration_users', methods=['GET', 'POST'])
