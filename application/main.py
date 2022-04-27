@@ -12,6 +12,9 @@ from werkzeug.security import check_password_hash
 from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
 
 
+server_addres = 'http://127.0.0.1:5000/'
+
+
 class Autorize_Form(QDialog):
     def __init__(self):
         super().__init__()
@@ -31,7 +34,7 @@ class Autorize_Form(QDialog):
         con.close()
         if login and password:
             try:
-                re = requests.post('http://127.0.0.1:5000/user_info').json()
+                re = requests.post(server_addres + 'user_info').json()
                 con = sqlite3.connect('data/datebase/application.db')
                 cur = con.cursor()
                 com = 'SELECT login FROM users'
@@ -56,10 +59,16 @@ class Autorize_Form(QDialog):
                     msg.exec_()
                     cur.close()
                     con.close()
+                    return None
                 com = f'SELECT password FROM users WHERE login = "{login}"'
                 res = cur.execute(com).fetchone()[0]
                 if check_password_hash(res, password):
-                    self.w = Main_Window()
+                    com = f'SELECT name FROM users WHERE login = "{login}"'
+                    res = cur.execute(com).fetchone()[0]
+                    f = open('data/user.txt', 'w')
+                    f.write(login)
+                    f.close()
+                    self.w = Main_Window(res)
                     self.w.show()
                     self.close()
                 else:
@@ -86,8 +95,8 @@ class Autorize_Form(QDialog):
 
     def sign_up(self):
         try:
-            requests.post('http://127.0.0.1:5000/cheak_server')
-            webbrowser.open('http://127.0.0.1:5000/registration_users')
+            requests.post(server_addres + 'cheak_server')
+            webbrowser.open(server_addres + 'registration_users')
         except requests.exceptions.RequestException:
             msg = QMessageBox()
             msg.setWindowTitle("Ошибка")
@@ -158,12 +167,26 @@ class Main_Window(QMainWindow):
     def send(self):
         text = self.msg_text.text()
         if text:
-            now = dt.datetime.now().strftime("%H:%M")
-            con = sqlite3.connect('data/datebase/application.db')
-            cur = con.cursor()
-            con.close()
-            self.msg_text.clear()
-            self.msg_field.append('[' + now + '] ' + text)
+            try:
+                requests.post(server_addres + 'cheak_server')
+
+                now = dt.datetime.now().strftime("%H:%M")
+                con = sqlite3.connect('data/datebase/application.db')
+                cur = con.cursor()
+
+
+                self.msg_text.clear()
+                self.msg_field.append('[' + now + '] ' + text)
+                cur.close()
+                con.close()
+            except requests.exceptions.RequestException:
+                msg = QMessageBox()
+                msg.setWindowTitle("Ошибка")
+                msg.setText("Извините, cервер недоступен")
+                msg.setIcon(QMessageBox.Warning)
+                msg.exec_()
+                return None
+
 
 class Search_User(QDialog):
     def __init__(self):
@@ -180,6 +203,6 @@ class Search_User(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    ex = Contacts(35)
+    ex = Autorize_Form()
     ex.show()
     sys.exit(app.exec_())
