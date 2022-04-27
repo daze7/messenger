@@ -44,31 +44,25 @@ def check_message():
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = from_user_id")
+                f"WHERE {user_id} = for_user_id")
     if len(cur.fetchall()) == 0:
         return jsonify({'error': 'not found this user_id'})
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = from_user_id AND status = 'new'")
+                f"WHERE {user_id} = for_user_id AND status = 'new'")
     value = cur.fetchone()
     if len(value) == 0:
         return jsonify({'result': 'no new messages found'})
-    for i in value:
-        if i == 'text':
-            cur.execute(f"SELECT id,for_user_id,date,text FROM message "
-                        f"WHERE {user_id} = from_user_id AND status = 'new' AND type = 'text'")
-            message = cur.fetchall()
-            result = {'id': [], 'for_user_id': [], 'date': [], 'text': []}
-            for y in message:
-                result['id'].append(y[0])
-                result['for_user_id'].append(y[1])
-                result['date'].append(y[2])
-                result['text'].append(y[3])
-                cur.execute(f"UPDATE messenger "
-                            f"SET status='old' "
-                            f"WHERE id = {y[0]}")
-                con.commit()
-        if value == 'photo':
-            continue
+    cur.execute(f"SELECT id,for_user_id,from_user_id,date,type,text,status FROM message "
+                f"WHERE {user_id} = for_user_id AND status = 'new' AND type = 'text'")
+    messages = cur.fetchall()
+    result = {}
+    for y in messages:
+        result[y][0] = {'for_user_id': y[1], 'from_user_id': y[2], 'date': y[3],
+                        'type': y[4], 'text': y[5], 'status': y[6]}
+        cur.execute(f"UPDATE messenger "
+                    f"SET status='old' "
+                    f"WHERE id = {y[0]}")
+        con.commit()
     cur.close()
     con.close()
     return jsonify(result)
@@ -110,8 +104,8 @@ def registration_user():
         db_sess.add(user)
         db_sess.commit()
         return render_template('register.html', title='Регистрация',
-                                   form=form,
-                                   message="Успешно")
+                               form=form,
+                               message="Успешно")
     return render_template('register.html', title='Регистрация', form=form)
 
 
