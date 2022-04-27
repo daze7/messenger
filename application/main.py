@@ -186,11 +186,15 @@ class Main_Window(QMainWindow):
                 cur = con.cursor()
                 from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()
                 for_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{for_login}'").fetchone()
-                now = dt.datetime.now().strftime("%H:%M")
+                date = dt.datetime.now().strftime("%H:%M")
 
-                requests.post(server_addres + 'cheak_server')
+                data = {'for_user_id': for_user_id, 'from_user_id': from_user_id, 'date': date, 'text': text}
+                requests.post(server_addres + 'send_message', data=data)
+
                 self.msg_text.clear()
-                self.msg_field.append('[' + now + '] ' + text)
+                self.msg_field.append('')
+                self.msg_field.append('Вы' + '[' + date + ']:')
+                self.msg_field.append(text)
                 cur.close()
                 con.close()
             except requests.exceptions.RequestException:
