@@ -215,7 +215,7 @@ class Main_Window(QMainWindow):
             f1 = open('data/from_user.txt', 'r')
             from_login = f1.readline()
             f1.close()
-            from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()
+            from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()[0]
             data = {'user_id': from_user_id}
             resp = requests.post(server_addres + 'check_message', json=data)
             resp.json()
