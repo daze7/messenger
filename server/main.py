@@ -33,6 +33,11 @@ def user_info():
     return jsonify(result)
 
 
+@app.route('/check_server', methods=['POST', 'GET'])
+def check_message():
+    return True
+
+
 @app.route('/check_message', methods=['POST', 'GET'])
 def check_message():
     user_id = request.json.get('user_id')
