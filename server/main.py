@@ -40,7 +40,7 @@ def check_server():
 
 @app.route('/check_message', methods=['POST', 'GET'])
 def check_message():
-    user_id = request.json['user_id'][0]
+    user_id = request.json['user_id']
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
