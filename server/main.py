@@ -44,16 +44,16 @@ def check_message():
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = from_user_id")
+                f"WHERE from_user_id = '{user_id}'")
     if len(cur.fetchall()) == 0:
         return jsonify({'error': 'not found this user_id'})
     cur.execute(f"SELECT type FROM message "
-                f"WHERE {user_id} = from_user_id AND status = 'new'")
+                f"WHERE from_user_id = '{user_id}' AND status = 'new'")
     value = cur.fetchone()
     if len(value) == 0:
         return jsonify({'result': 'no new messages found'})
     cur.execute(f"SELECT id,for_user_id,from_user_id,date,type,text,status FROM message "
-                f"WHERE {user_id} = from_user_id AND status = 'new' AND type = 'text'")
+                f"WHERE from_user_id = '{user_id}' AND status = 'new' AND type = 'text'")
     messages = cur.fetchall()
     result = {}
     for y in messages:
@@ -61,7 +61,7 @@ def check_message():
                         'type': y[4], 'text': y[5], 'status': y[6]}
         cur.execute(f"UPDATE messenger "
                     f"SET status='old' "
-                    f"WHERE id = {y[0]}")
+                    f"WHERE id = '{y[0]}'")
         con.commit()
     cur.close()
     con.close()
