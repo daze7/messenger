@@ -7,8 +7,9 @@ import webbrowser
 import requests
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox, QPushButton, QScrollArea, QWidget, QVBoxLayout
 from werkzeug.security import check_password_hash
+from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
 
 
 class Autorize_Form(QDialog):
@@ -95,13 +96,60 @@ class Autorize_Form(QDialog):
             msg.exec_()
             return None
 
+class Contacts(QWidget):
+    def __init__(self, val):
+        super().__init__()
+        self.title = "Messenger"
+        self.top = 200
+        self.left = 500
+        self.width = 400
+        self.height = 300
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        formLayout = QFormLayout()
+        groupBox = QGroupBox("Ваши чаты")
+        comboList = []
+        self.add_user = QPushButton("Добавить пользователя")
+        self.add_user.setStyleSheet("background-color: red")
+        formLayout.addRow(self.add_user)
+        username = 'unkno'
+        for i in range(val):
+            self.button = QPushButton("Userва")
+            formLayout.addRow(self.button)
+            self.button.clicked.connect(self.open_chat)
+        groupBox.setLayout(formLayout)
+        scroll = QScrollArea()
+        scroll.setWidget(groupBox)
+        scroll.setWidgetResizable(True)
+        scroll.setFixedHeight(400)
+        layout = QVBoxLayout(self)
+        layout.addWidget(scroll)
+        self.add_user.clicked.connect(self.create_chat)
+
+
+    def create_chat(self):
+        self.w = Search_User()
+        self.w.show()
+        print('yes')
+        pass
+
+
+    def open_chat(self):
+        username = self.button.text()
+        print(username)
+        self.w = Main_Window(username)
+        self.w.show()
+        print('shiki')
+        pass
+
 
 class Main_Window(QMainWindow):
-    def __init__(self):
+    def __init__(self, username):
         super().__init__()
         uic.loadUi('main_interface.ui', self)
         self.msg_send.clicked.connect(self.send)
-        self.add_user.clicked.connect(self.search)
+        self.label.setText(username)
+
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
@@ -117,21 +165,21 @@ class Main_Window(QMainWindow):
             self.msg_text.clear()
             self.msg_field.append('[' + now + '] ' + text)
 
-    def search(self):
-        self.f = Search_user()
-        self.f.show()
-
-class Search_user(QMainWindow):
-    def __int__(self):
+class Search_User(QDialog):
+    def __init__(self):
         super().__init__()
-        uic.loadUi('search_user2.ui', self)
-        #self.add_user.clicked.connect(self.add_to_list)
+        uic.loadUi('search_user.ui', self)
+        self.add_to_list.clicked.connect(self.search)
+
+    def search(self):
+        print('here')
+        pass
 
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    ex = Autorize_Form()
+    ex = Contacts(35)
     ex.show()
     sys.exit(app.exec_())
