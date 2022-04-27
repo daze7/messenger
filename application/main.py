@@ -41,7 +41,12 @@ class Autorize_Form(QDialog):
                                     f"VALUES('{re[i]['user_id']}','{re[i]['login']}','{re[i]['name']}',"
                                     f"'{re[i]['surname']}', '{re[i]['password']}', '{re[i]['date_register']}', "
                                     f"'{re[i]['status']}')")
+                        value += re[i]["login"]
                         con.commit()
+                        cur.close()
+                        con.close()
+                con = sqlite3.connect('data/datebase/application.db')
+                cur = con.cursor()
                 if login not in value:
                     msg = QMessageBox()
                     msg.setWindowTitle("Ошибка")
