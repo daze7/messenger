@@ -189,7 +189,7 @@ class Main_Window(QMainWindow):
                 date = dt.datetime.now().strftime("%H:%M")
 
                 data = {'for_user_id': for_user_id, 'from_user_id': from_user_id, 'date': date, 'text': text}
-                requests.post(server_addres + 'send_message', data=data)
+                requests.post(server_addres + 'send_message', json=data)
 
                 self.msg_text.clear()
                 self.msg_field.append('')
