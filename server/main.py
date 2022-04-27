@@ -34,7 +34,7 @@ def user_info():
 
 
 @app.route('/check_server', methods=['POST', 'GET'])
-def check_message():
+def check_server():
     return True
 
 
