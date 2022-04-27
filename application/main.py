@@ -65,7 +65,7 @@ class Autorize_Form(QDialog):
                 if check_password_hash(res, password):
                     com = f'SELECT name FROM users WHERE login = "{login}"'
                     res = cur.execute(com).fetchone()[0]
-                    f = open('data/user.txt', 'w')
+                    f = open('data/from_user.txt', 'w')
                     f.write(login)
                     f.close()
                     self.w = Main_Window(res)
@@ -167,14 +167,21 @@ class Main_Window(QMainWindow):
     def send(self):
         text = self.msg_text.text()
         if text:
+            self.check_users()
             try:
-                requests.post(server_addres + 'cheak_server')
-
-                now = dt.datetime.now().strftime("%H:%M")
+                f1 = open('data/from_user.txt', 'r')
+                from_login = f1.readline()
+                f1.close()
+                f2 = open('data/for_user.txt', 'r')
+                for_login = f2.readline()
+                f2.close()
                 con = sqlite3.connect('data/datebase/application.db')
                 cur = con.cursor()
+                from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()
+                for_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{for_login}'").fetchone()
+                now = dt.datetime.now().strftime("%H:%M")
 
-
+                requests.post(server_addres + 'cheak_server')
                 self.msg_text.clear()
                 self.msg_field.append('[' + now + '] ' + text)
                 cur.close()
@@ -186,6 +193,31 @@ class Main_Window(QMainWindow):
                 msg.setIcon(QMessageBox.Warning)
                 msg.exec_()
                 return None
+
+    def check_users(self):
+        try:
+            re = requests.post(server_addres + 'user_info').json()
+            con = sqlite3.connect('data/datebase/application.db')
+            cur = con.cursor()
+            com = 'SELECT login FROM users'
+            value = ''.join([i[0] for i in cur.execute(com).fetchall()])
+            for i in re:
+                if re[i]['login'] not in value:
+                    cur.execute(f"INSERT INTO users(user_id,login,name,surname,password,date_regist,status) "
+                                f"VALUES('{re[i]['user_id']}','{re[i]['login']}','{re[i]['name']}',"
+                                f"'{re[i]['surname']}', '{re[i]['password']}', '{re[i]['date_register']}', "
+                                f"'{re[i]['status']}')")
+                    value += re[i]["login"]
+                    con.commit()
+                    cur.close()
+                    con.close()
+        except requests.exceptions.RequestException:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Сервер недоступен")
+            msg.setIcon(QMessageBox.Warning)
+            msg.exec_()
+        return None
 
 
 class Search_User(QDialog):
