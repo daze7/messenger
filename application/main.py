@@ -6,7 +6,7 @@ import webbrowser
 
 import requests
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox, QPushButton, QScrollArea, \
     QWidget, QVBoxLayout
 from werkzeug.security import check_password_hash
@@ -68,6 +68,8 @@ class Autorize_Form(QDialog):
                     f = open('data/from_user.txt', 'w')
                     f.write(login)
                     f.close()
+                    cur.close()
+                    con.close()
                     self.w = Main_Window(res)
                     self.w.show()
                     self.close()
@@ -77,8 +79,6 @@ class Autorize_Form(QDialog):
                     msg.setText("Неправильный пароль")
                     msg.setIcon(QMessageBox.Warning)
                     msg.exec_()
-                cur.close()
-                con.close()
             except requests.exceptions.RequestException:
                 msg = QMessageBox()
                 msg.setWindowTitle("Ошибка")
@@ -162,10 +162,16 @@ class Main_Window(QMainWindow):
     def __init__(self, username):
         super().__init__()
         uic.loadUi('main_interface.ui', self)
+        self.timer1 = QTimer()
+        self.timer1.timeout.connect(self.check_users)
+        self.timer1.startTimer(100)
+        #self.timer2 = QTimer()
+        #self.timer2.setInterval(100)
+        #self.timer2.timeout.connect(self.check_message)
+
         self.msg_send.clicked.connect(self.send)
         self.label.setText(username.split('(')[0])
         self.show_history()
-        self.check_message()
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
@@ -211,7 +217,9 @@ class Main_Window(QMainWindow):
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
             resp = requests.post(server_addres + 'check_message').json()
-            for i in resp[0]:
+            for i in resp:
+                if i == 'result':
+                    return None
                 cur.execute(f"INSERT INTO message(for_user_id,from_user_id,date,type,text,photo,status) "
                             f"VALUES('{i[1]}','{i[2]}','{i[3]}','{i[4]}','{i[5]}','','new')")
                 con.commit()
