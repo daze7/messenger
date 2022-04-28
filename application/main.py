@@ -7,10 +7,10 @@ import webbrowser
 import requests
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox, QPushButton, QScrollArea, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox, QPushButton, QScrollArea, \
+    QWidget, QVBoxLayout
 from werkzeug.security import check_password_hash
 from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
-
 
 server_addres = 'http://127.0.0.1:5000/'
 
@@ -105,6 +105,7 @@ class Autorize_Form(QDialog):
             msg.exec_()
             return None
 
+
 class Contacts(QWidget):
     def __init__(self, val):
         super().__init__()
@@ -142,13 +143,11 @@ class Contacts(QWidget):
         layout.addWidget(scroll)
         self.add_user.clicked.connect(self.create_chat)
 
-
     def create_chat(self):
         self.w = Search_User()
         self.w.show()
         print('yes')
         pass
-
 
     def open_chat(self):
         username = self.button.text()
@@ -167,7 +166,6 @@ class Main_Window(QMainWindow):
         self.label.setText(username.split('(')[0])
         self.show_history()
         self.check_message()
-
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
@@ -212,14 +210,11 @@ class Main_Window(QMainWindow):
             self.check_users()
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
-            f1 = open('data/from_user.txt', 'r')
-            from_login = f1.readline()
-            f1.close()
-            from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()[0]
-            data = {'user_id': from_user_id}
-            resp = requests.post(server_addres + 'check_message', json=data)
-            resp.json()
-            print(resp)
+            resp = requests.post(server_addres + 'check_message').json()
+            for i in resp[0]:
+                cur.execute(f"INSERT INTO message(for_user_id,from_user_id,date,type,text,photo,status) "
+                            f"VALUES('{i[1]}','{i[2]}','{i[3]}','{i[4]}','{i[5]}','','new')")
+                con.commit()
             cur.close()
             con.close()
         except BaseException as e:
@@ -294,7 +289,6 @@ class Search_User(QDialog):
     def search(self):
         print('here')
         pass
-
 
 
 if __name__ == '__main__':
