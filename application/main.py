@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMess
 from werkzeug.security import check_password_hash
 from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
 
-server_addres = 'http://127.0.0.1:5000/'
+server_addres = 'http://586f-176-107-249-110.ngrok.io/'
 
 
 class Autorize_Form(QDialog):
@@ -70,7 +70,7 @@ class Autorize_Form(QDialog):
                     f.close()
                     cur.close()
                     con.close()
-                    self.w = Main_Window(res)
+                    self.w = Contacts()
                     self.w.show()
                     self.close()
                 else:
@@ -116,12 +116,12 @@ class Contacts(QWidget):
         self.height = 300
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
-        formLayout = QFormLayout()
-        groupBox = QGroupBox("Ваши чаты")
+        self.formLayout = QFormLayout()
+        self.groupBox = QGroupBox("Ваши чаты")
         comboList = []
         self.add_user = QPushButton("Добавить пользователя")
         self.add_user.setStyleSheet("background-color: red")
-        formLayout.addRow(self.add_user)
+        self.formLayout.addRow(self.add_user)
         con = sqlite3.connect('data/datebase/application.db')
         cur = con.cursor()
         com = 'SELECT name, surname, login FROM chat'
@@ -132,11 +132,11 @@ class Contacts(QWidget):
         for i in range(len(res)):
             self.usern.append(res[i][0] + ' ' + res[i][1] + '(' + res[i][2] + ')')
             self.button = QPushButton(self.usern[i])
-            formLayout.addRow(self.button)
+            self.formLayout.addRow(self.button)
             self.button.clicked.connect(lambda ch, i=i: self.open_chat(i))
-        groupBox.setLayout(formLayout)
+        self.groupBox.setLayout(self.formLayout)
         scroll = QScrollArea()
-        scroll.setWidget(groupBox)
+        scroll.setWidget(self.groupBox)
         scroll.setWidgetResizable(True)
         scroll.setFixedHeight(400)
         layout = QVBoxLayout(self)
@@ -144,6 +144,7 @@ class Contacts(QWidget):
         self.add_user.clicked.connect(self.create_chat)
 
     def create_chat(self):
+        self.close()
         self.w = Search_User()
         self.w.show()
 
@@ -290,15 +291,43 @@ class Search_User(QDialog):
         uic.loadUi('search_user.ui', self)
         self.add_to_list.clicked.connect(self.search)
 
+    def keyPressEvent(self, event):
+        if event.key() == 16777220:
+            Search_User.search(self)
+
     def search(self):
-        #login = self.lineEdit.text()
-        pass
+        login = self.lineEdit.text()
+        con = sqlite3.connect('data/datebase/application.db')
+        cur = con.cursor()
+        com = 'SELECT name, surname FROM users WHERE login = "' + login + '"'
+        res = cur.execute(com).fetchone()
+        cur.close()
+        con.close()
+        if not res:
+            msg = QMessageBox()
+            msg.setWindowTitle("Ошибка")
+            msg.setText("Пользователя с таким логином не существует")
+            msg.setIcon(QMessageBox.Warning)
+            msg.exec_()
+        else:
+            butname = res[0] + ' ' + res[1] + '(' + login + ')'
+            con = sqlite3.connect('data/datebase/application.db')
+            cur = con.cursor()
+            com = 'INSERT INTO chat(login, name, surname) VALUES("' + login + '","' + res[0] + '","' + res[1] + '")'
+            print(com)
+            cur.execute(com)
+            con.commit()
+            cur.close()
+            con.close()
+            ex = Contacts()
+            ex.show()
+            self.close()
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    ex = Autorize_Form()
-    #ex = Contacts()
+    #ex = Autorize_Form()
+    ex = Contacts()
     ex.show()
     sys.exit(app.exec_())
