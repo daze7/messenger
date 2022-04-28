@@ -314,7 +314,6 @@ class Search_User(QDialog):
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
             com = 'INSERT INTO chat(login, name, surname) VALUES("' + login + '","' + res[0] + '","' + res[1] + '")'
-            print(com)
             cur.execute(com)
             con.commit()
             cur.close()
@@ -327,7 +326,7 @@ class Search_User(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    #ex = Autorize_Form()
-    ex = Contacts()
+    ex = Autorize_Form()
+    #ex = Contacts()
     ex.show()
     sys.exit(app.exec_())
