@@ -107,7 +107,7 @@ class Autorize_Form(QDialog):
 
 
 class Contacts(QWidget):
-    def __init__(self, val):
+    def __init__(self):
         super().__init__()
         self.title = "Messenger"
         self.top = 200
@@ -128,12 +128,12 @@ class Contacts(QWidget):
         res = cur.execute(com).fetchall()
         cur.close()
         con.close()
-        print(res)
+        self.usern = []
         for i in range(len(res)):
-            usern = res[i][0] + ' ' + res[i][1] + '(' + res[i][2] + ')'
-            self.button = QPushButton(usern)
+            self.usern.append(res[i][0] + ' ' + res[i][1] + '(' + res[i][2] + ')')
+            self.button = QPushButton(self.usern[i])
             formLayout.addRow(self.button)
-            self.button.clicked.connect(self.open_chat)
+            self.button.clicked.connect(lambda ch, i=i: self.open_chat(i))
         groupBox.setLayout(formLayout)
         scroll = QScrollArea()
         scroll.setWidget(groupBox)
@@ -146,16 +146,10 @@ class Contacts(QWidget):
     def create_chat(self):
         self.w = Search_User()
         self.w.show()
-        print('yes')
-        pass
 
-    def open_chat(self):
-        username = self.button.text()
-        print(username)
-        self.w = Main_Window(username)
+    def open_chat(self, i):
+        self.w = Main_Window(self.usern[i])
         self.w.show()
-        print('shiki')
-        pass
 
 
 class Main_Window(QMainWindow):
@@ -297,7 +291,7 @@ class Search_User(QDialog):
         self.add_to_list.clicked.connect(self.search)
 
     def search(self):
-        print('here')
+        #login = self.lineEdit.text()
         pass
 
 
@@ -305,5 +299,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     ex = Autorize_Form()
+    #ex = Contacts()
     ex.show()
     sys.exit(app.exec_())
