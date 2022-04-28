@@ -52,7 +52,7 @@ def check_message():
     results = []
     for y in messages:
         results.append(y)
-        cur.execute(f"UPDATE messenger "
+        cur.execute(f"UPDATE message "
                     f"SET status='old' "
                     f"WHERE id = '{y[0]}'")
         con.commit()
