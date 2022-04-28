@@ -289,14 +289,14 @@ class Search_User(QDialog):
         self.add_to_list.clicked.connect(self.search)
 
     def search(self):
-        login = self.lineEdit.text()
+        #login = self.lineEdit.text()
         pass
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
-    #ex = Autorize_Form()
-    ex = Contacts()
+    ex = Autorize_Form()
+    #ex = Contacts()
     ex.show()
     sys.exit(app.exec_())
