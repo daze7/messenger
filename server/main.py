@@ -40,32 +40,25 @@ def check_server():
 
 @app.route('/check_message', methods=['POST', 'GET'])
 def check_message():
-    user_id = request.json['user_id']
     con = sqlite3.connect('data/datebase/server.db')
     cur = con.cursor()
-    cur.execute(f"SELECT type FROM message "
-                f"WHERE from_user_id = '{user_id}'")
-    if len(cur.fetchall()) == 0:
-        return jsonify({'error': 'not found this user_id'})
-    cur.execute(f"SELECT type FROM message "
-                f"WHERE from_user_id = '{user_id}' AND status = 'new'")
-    value = cur.fetchone()
+    value = cur.execute(f"SELECT id FROM message "
+                        f"WHERE status = 'new'").fetchall()
     if len(value) == 0:
         return jsonify({'result': 'no new messages found'})
-    cur.execute(f"SELECT id,for_user_id,from_user_id,date,type,text,status FROM message "
-                f"WHERE from_user_id = '{user_id}' AND status = 'new' AND type = 'text'")
-    messages = cur.fetchall()
-    result = {}
+    messages = cur.execute(f"SELECT id,for_user_id,from_user_id,date,type,text,status FROM message "
+                           f"WHERE status = 'new' AND type = 'text'").fetchall()
+
+    results = []
     for y in messages:
-        result[y][0] = {'for_user_id': y[1], 'from_user_id': y[2], 'date': y[3],
-                        'type': y[4], 'text': y[5], 'status': y[6]}
+        results.append(y)
         cur.execute(f"UPDATE messenger "
                     f"SET status='old' "
                     f"WHERE id = '{y[0]}'")
         con.commit()
     cur.close()
     con.close()
-    return jsonify(result)
+    return jsonify(results)
 
 
 @app.route('/send_message', methods=['GET', 'POST'])
