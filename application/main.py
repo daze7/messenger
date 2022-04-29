@@ -6,13 +6,13 @@ import webbrowser
 
 import requests
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMessageBox, QPushButton, QScrollArea, \
     QWidget, QVBoxLayout
 from werkzeug.security import check_password_hash
 from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
 
-server_addres = 'http://586f-176-107-249-110.ngrok.io/'
+server_addres = 'http://127.0.0.1:5000/'
 
 
 class Autorize_Form(QDialog):
@@ -34,7 +34,15 @@ class Autorize_Form(QDialog):
         con.close()
         if login and password:
             try:
-                re = requests.post(server_addres + 'user_info').json()
+                re = requests.post(server_addres + 'user_info')
+                if re.status_code == 404:
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Ошибка")
+                    msg.setText("Сервер недоступен")
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.exec_()
+                    return None
+                re = re.json()
                 con = sqlite3.connect('data/datebase/application.db')
                 cur = con.cursor()
                 com = 'SELECT login FROM users'
@@ -54,7 +62,7 @@ class Autorize_Form(QDialog):
                 if login not in value:
                     msg = QMessageBox()
                     msg.setWindowTitle("Ошибка")
-                    msg.setText("Неправильный пароль")
+                    msg.setText("Пользователя с таким логином не существует.")
                     msg.setIcon(QMessageBox.Warning)
                     msg.exec_()
                     cur.close()
@@ -157,16 +165,29 @@ class Main_Window(QMainWindow):
     def __init__(self, username):
         super().__init__()
         uic.loadUi('main_interface.ui', self)
-        self.timer1 = QTimer()
-        self.timer1.timeout.connect(self.check_users)
-        self.timer1.startTimer(3000)
-        # self.timer2 = QTimer()
-        # self.timer2.setInterval(100)
-        # self.timer2.timeout.connect(self.check_message)
+        f = open('data/for_user.txt', 'w')
+        f.write(username.split('(')[1][:-1])
+        f.close()
 
         self.msg_send.clicked.connect(self.send)
         self.label.setText(username.split('(')[0])
         self.show_history()
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.show_history)
+        self.timer.start(3000)
+
+    def closeEvent(self, e):
+        result = QMessageBox.question(self, "Подтверждение закрытия окна",
+                                      "Вы действительно хотите закрыть окно?",
+                                      QMessageBox.Yes | QMessageBox.No,
+                                      QMessageBox.No)
+        if result == QMessageBox.Yes:
+            self.timer.stop()
+            e.accept()
+            QWidget.closeEvent(self, e)
+        else:
+            e.ignore()
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
@@ -208,7 +229,6 @@ class Main_Window(QMainWindow):
 
     def check_message(self):
         try:
-            self.check_users()
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
             resp = requests.post(server_addres + 'check_message').json()
@@ -226,34 +246,39 @@ class Main_Window(QMainWindow):
     def show_history(self):
         try:
             self.check_users()
-            f2 = open('data/for_user.txt', 'r')
-            for_login = f2.readline()
-            f2.close()
+            self.check_message()
             con = sqlite3.connect('data/datebase/application.db')
             cur = con.cursor()
+            f1 = open('data/from_user.txt', 'r')
+            f2 = open('data/for_user.txt', 'r')
+            from_login = f1.readline()
+            for_login = f2.readline()
+            f1.close()
+            f2.close()
+            from_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{from_login}'").fetchone()[0]
             for_user_id = cur.execute(f"SELECT user_id FROM users WHERE login = '{for_login}'").fetchone()[0]
-
-            value = cur.execute(
-                f"SELECT id,text,date,from_user_id FROM message WHERE for_user_id = '{for_user_id}'").fetchall()
-
-            name = cur.execute(f"SELECT name,surname FROM users WHERE login = '{for_login}'").fetchall()
+            name_surname_for = cur.execute(f"SELECT name,surname FROM users "
+                                           f"WHERE user_id = '{for_user_id}'").fetchall()[0]
+            messages = cur.execute(f"SELECT id,for_user_id,from_user_id,date,text FROM message").fetchall()
             self.msg_field.clear()
-            for i in value:
-                if i[3] != for_user_id:
+            for i in messages:
+                if i[2] == from_user_id and i[1] == for_user_id:
                     self.msg_field.append('')
-                    self.msg_field.append('Вы' + '[' + i[2] + ']:')
-                    self.msg_field.append(i[1])
+                    self.msg_field.append('Вы' + '[' + i[3] + ']:')
+                    self.msg_field.append(i[4])
                     cur.execute(f"UPDATE message "
-                                 f"SET status='old' "
-                                 f"WHERE id = {i[0]}")
+                                f"SET status='old' "
+                                f"WHERE id = {i[0]}")
                     con.commit()
-                else:
+                if i[2] == for_user_id and i[1] == from_user_id:
                     self.msg_field.append('')
-                    self.msg_field.append(name[0][0] + ' ' + name[0][1] + '[' + i[2] + ']:')
-                    self.msg_field.append(i[1])
+                    self.msg_field.append(name_surname_for[0] + ' ' + name_surname_for[1] + '[' + i[3] + ']:')
+                    self.msg_field.append(i[4])
                     cur.execute(f"UPDATE message "
-                                 f"SET status='old' "
-                                 f"WHERE id = {i[0]}")
+                                f"SET status='old' "
+                                f"WHERE id = {i[0]}")
+                    con.commit()
+
             cur.close()
             con.close()
         except BaseException:
@@ -327,6 +352,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     ex = Autorize_Form()
-    #ex = Contacts()
+    # ex = Contacts()
     ex.show()
     sys.exit(app.exec_())
