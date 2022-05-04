@@ -35,7 +35,7 @@ class Autorize_Form(QDialog):
         if login and password:
             try:
                 re = requests.post(server_addres + 'user_info')
-                if re.status_code == 404:
+                if re.status_code == 404 or re.status_code == 500:
                     msg = QMessageBox()
                     msg.setWindowTitle("Ошибка")
                     msg.setText("Сервер недоступен")
