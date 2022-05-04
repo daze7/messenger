@@ -12,7 +12,17 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QDialog, QMess
 from werkzeug.security import check_password_hash
 from PyQt5.QtWidgets import QFormLayout, QGroupBox, QLabel
 
-server_addres = 'http://127.0.0.1:5000/'
+f = open('data/config.txt', 'r')
+result = f.readlines()
+addres = result[2].split('=')[1][1:-1]
+if addres == 'defolt':
+    server_addres = 'http://127.0.0.1:5000/'
+elif addres == '':
+    server_addres = 'http://127.0.0.1:5000/'
+else:
+    server_addres = addres
+f.close()
+#server_addres = 'http://127.0.0.1:5000/'
 
 
 class Autorize_Form(QDialog):
